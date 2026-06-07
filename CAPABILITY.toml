@@ -1,0 +1,105 @@
+[crate]
+name = "lattice-crypto-rs"
+version = "0.1.0"
+layer = "security"
+description = "Lattice-based cryptography primitives: LWE encryption/decryption, Ring-LWE, Gaussian sampling, and lattice basis operations"
+
+[provides]
+capabilities = [
+  { name = "lwe_encryption", type = "module", description = "Learning With Errors key generation, encryption, and decryption" },
+  { name = "ring_lwe", type = "module", description = "Ring-LWE key generation, encryption, and decryption with polynomial rings" },
+  { name = "ntru", type = "module", description = "NTRU lattice-based encryption scheme" },
+  { name = "rlwe_kex", type = "module", description = "Ring-LWE key exchange protocol" },
+  { name = "gaussian_sampling", type = "module", description = "Discrete Gaussian sampling via Box-Muller and rejection methods" },
+  { name = "lattice_basis", type = "module", description = "Lattice basis operations: Gram-Schmidt, LLL reduction, CVP approximation" },
+  { name = "modular_arithmetic", type = "module", description = "Modular arithmetic and polynomial utilities" },
+  { name = "error_types", type = "enum", description = "Common error type for lattice-crypto operations" }
+]
+exports = [
+  "lwe::LWE",
+  "ring_lwe::RingLWE",
+  "gaussian::DiscreteGaussianSampler",
+  "gaussian_rejection::RejectionSampler",
+  "lattice::LatticeBasis",
+  "ntru::NTRU",
+  "rlwe_kex::RingLWEKEX",
+  "util::mod_pow",
+  "util::PolyMod",
+  "LatticeError"
+]
+
+[requires]
+optional = [
+  { crate = "agent-identity-rs", reason = "Agent identity-bound encryption keys", import = "identity::AgentIdentity" },
+  { crate = "agent-handshake-rs", reason = "Secure handshake using lattice-based key exchange", import = "handshake::HandshakeProtocol" }
+]
+
+[integrates.agent_identity]
+crate = "agent-identity-rs"
+module = "rlwe_kex"
+description = "Identity-bound encryption: derive Ring-LWE keys from agent identity for secure inter-agent communication"
+human_steps = [
+  "1. cargo add agent-identity-rs",
+  "2. Derive agent identity seed for key generation",
+  "3. Use RingLWE::keygen() with identity-derived seed"
+]
+agent_steps = [
+  "Obtain AgentIdentity for source and target agents",
+  "Derive deterministic seed from identity for key generation",
+  "Use RingLWE::keygen() with identity seed",
+  "Exchange keys via RingLWEKEX handshake protocol"
+]
+
+[integrates.agent_handshake]
+crate = "agent-handshake-rs"
+module = "rlwe_kex"
+description = "Post-quantum handshake: Ring-LWE key exchange for secure agent-to-agent channels"
+human_steps = [
+  "1. cargo add agent-handshake-rs",
+  "2. Initialize RingLWEKEX for key exchange",
+  "3. Exchange public keys through handshake protocol"
+]
+agent_steps = [
+  "Initialize RingLWEKEX with security parameters",
+  "Generate ephemeral keypair via keygen()",
+  "Exchange public components through handshake channel",
+  "Derive shared secret using compute_shared_secret()",
+  "Use shared secret for symmetric encryption channel"
+]
+
+[onboarding.human]
+quick_start = "cargo add lattice-crypto-rs"
+example = """
+use lattice_crypto::{LWE, RingLWE, DiscreteGaussianSampler, LatticeBasis};
+
+// LWE encryption
+let lwe = LWE::new(256, 3329, 3.2);
+let (pk, sk) = lwe.keygen();
+let ciphertext = lwe.encrypt(&pk, &message);
+let decrypted = lwe.decrypt(&sk, &ciphertext);
+
+// Ring-LWE
+let rlwe = RingLWE::new(256, 3329, 3.2);
+let (rpk, rsk) = rlwe.keygen();
+
+// Gaussian sampling
+let sampler = DiscreteGaussianSampler::new(0.0, 3.2);
+let sample = sampler.sample();
+"""
+
+[onboarding.agent]
+context_needed = ["security_parameter_n", "modulus_q", "noise_stddev", "ring_dimension"]
+api_surface = [
+  "LWE::new(n, q, sigma)",
+  "LWE::keygen() -> (PublicKey, SecretKey)",
+  "LWE::encrypt(pk, message) -> Ciphertext",
+  "LWE::decrypt(sk, ct) -> Message",
+  "RingLWE::new(n, q, sigma)",
+  "RingLWE::keygen() -> (PublicKey, SecretKey)",
+  "DiscreteGaussianSampler::new(mean, sigma)",
+  "DiscreteGaussianSampler::sample() -> i64",
+  "LatticeBasis::gram_schmidt(basis)",
+  "LatticeBasis::lll_reduce(basis, delta)",
+  "LatticeBasis::cvp_approx(basis, target)"
+]
+integration_pattern = "Choose security parameters, generate keypairs via LWE or RingLWE, encrypt/decrypt messages. For key exchange: use RingLWEKEX. For advanced: LLL-reduce lattice bases, sample discrete Gaussians for noise generation."

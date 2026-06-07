@@ -20,11 +20,16 @@ pub mod ntru;
 pub mod ring_lwe;
 pub mod rlwe_kex;
 pub mod util;
+pub mod identity;
 
 pub use gaussian::DiscreteGaussianSampler;
 pub use lattice::LatticeBasis;
 pub use lwe::LWE;
 pub use ring_lwe::RingLWE;
+pub use identity::{
+    AgentKeyPair, IdentityToken,
+    generate_agent_keypair, sign_token, verify_token, derive_shared_digest,
+};
 
 /// Common error type for lattice-crypto operations.
 #[derive(Debug, Clone, PartialEq)]
