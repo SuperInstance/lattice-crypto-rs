@@ -11,3 +11,7 @@ authors = ["SuperInstance"]
 readme = "README.md"
 
 [dependencies]
+proptest = { version = "1.5", optional = true }
+
+[dev-dependencies]
+proptest = "1.5"

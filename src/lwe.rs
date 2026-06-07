@@ -134,7 +134,7 @@ mod tests {
         let sk = lwe.keygen();
         assert_eq!(sk.len(), 4);
         for &s in &sk {
-            assert!(s >= 0 && s < 97);
+            assert!((0..97).contains(&s));
         }
     }
 

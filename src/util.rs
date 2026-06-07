@@ -200,7 +200,7 @@ mod tests {
     fn test_dot_mod() {
         let a = vec![1, 2, 3];
         let b = vec![4, 5, 6];
-        assert_eq!(dot_mod(&a, &b, 100), (4 + 10 + 18) % 100);
+        assert_eq!(dot_mod(&a, &b, 100), (4 + 10 + 18));
     }
 
     #[test]

@@ -1,3 +1,5 @@
+#![allow(clippy::needless_range_loop)]
+
 //! # lattice-crypto-rs
 //!
 //! A pure-Rust library implementing lattice-based cryptography primitives for research and education.
@@ -11,9 +13,12 @@
 //! - [`util`] — Modular arithmetic and polynomial utilities
 
 pub mod gaussian;
+pub mod gaussian_rejection;
 pub mod lattice;
 pub mod lwe;
+pub mod ntru;
 pub mod ring_lwe;
+pub mod rlwe_kex;
 pub mod util;
 
 pub use gaussian::DiscreteGaussianSampler;
