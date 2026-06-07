@@ -162,4 +162,27 @@ mod tests {
         let mean = samples.iter().sum::<i64>() as f64 / samples.len() as f64;
         assert!((mean - 10.0).abs() < 1.0, "Mean should be close to center 10.0, got {}", mean);
     }
+
+    #[test]
+    fn test_pmf_symmetry() {
+        let sampler = DiscreteGaussianSampler::new(2.0, 0.0, 42);
+        assert!((sampler.pmf(3) - sampler.pmf(-3)).abs() < 1e-10,
+            "PMF should be symmetric around center");
+    }
+
+    #[test]
+    fn test_rejection_samples_near_center() {
+        let mut sampler = DiscreteGaussianSampler::new(1.0, 0.0, 77);
+        let samples: Vec<i64> = (0..100).map(|_| sampler.sample_rejection(4.0)).collect();
+        let near = samples.iter().filter(|&&x| x.abs() <= 2).count();
+        assert!(near > 60, "Most samples should be near center for sigma=1.0, got {}/100", near);
+    }
+
+    #[test]
+    fn test_sample_n_length() {
+        let mut sampler = DiscreteGaussianSampler::new(1.5, 0.0, 42);
+        for n in [0, 1, 10, 100] {
+            assert_eq!(sampler.sample_n(n).len(), n);
+        }
+    }
 }

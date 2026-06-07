@@ -219,4 +219,62 @@ mod tests {
         // b = a*s + e (mod q), so b should be deterministic given a, s, e
         assert_eq!(kp.b.coeffs.len(), kp.a.coeffs.len());
     }
+
+    #[test]
+    fn test_multiple_keygens_differ() {
+        let mut rlwe = make_ring_lwe();
+        let kp1 = rlwe.keygen();
+        let kp2 = rlwe.keygen();
+        // Different keygens should produce different secret keys (with high probability)
+        assert_ne!(kp1.secret, kp2.secret, "Consecutive keygens should differ");
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_all_zeros() {
+        let mut rlwe = make_ring_lwe();
+        let kp = rlwe.keygen();
+        let msg = Poly::new(vec![0, 0, 0, 0]);
+        let mut correct = 0;
+        for _ in 0..20 {
+            let ct = rlwe.encrypt(&kp, &msg);
+            let dec = rlwe.decrypt(&kp, &ct);
+            if dec.coeffs.iter().all(|&c| c == 0) {
+                correct += 1;
+            }
+        }
+        assert!(correct >= 14, "All-zero message should decrypt reliably, got {}/20", correct);
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_all_ones() {
+        let mut rlwe = make_ring_lwe();
+        let kp = rlwe.keygen();
+        let msg = Poly::new(vec![1, 1, 1, 1]);
+        let mut correct = 0;
+        for _ in 0..20 {
+            let ct = rlwe.encrypt(&kp, &msg);
+            let dec = rlwe.decrypt(&kp, &ct);
+            if dec.coeffs.iter().all(|&c| c == 1) {
+                correct += 1;
+            }
+        }
+        assert!(correct >= 12, "All-ones message should decrypt somewhat reliably, got {}/20", correct);
+    }
+
+    #[test]
+    fn test_ciphertext_components_correct_size() {
+        let mut rlwe = make_ring_lwe();
+        let kp = rlwe.keygen();
+        let msg = Poly::new(vec![0, 1, 0, 1]);
+        let ct = rlwe.encrypt(&kp, &msg);
+        assert_eq!(ct.c1.coeffs.len(), 4);
+        assert_eq!(ct.c2.coeffs.len(), 4);
+        // Ciphertext coefficients should be in [0, q)
+        for &c in &ct.c1.coeffs {
+            assert!(c >= 0 && c < 97);
+        }
+        for &c in &ct.c2.coeffs {
+            assert!(c >= 0 && c < 97);
+        }
+    }
 }
